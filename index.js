@@ -10,11 +10,13 @@ require("dotenv").config();
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 const instrumentRoutes = require("./routes/instrumentRoutes");
 const strategyRoutes = require("./routes/strategyRoutes");
 const backtestRoutes = require("./routes/backtestRoutes");
 const brokerRoutes = require("./routes/brokerRoutes");
 const tradingEngineRoutes = require("./routes/tradingEngineRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Import services
 const cronService = require("./services/cronService");
@@ -29,7 +31,7 @@ db();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
+  origin: true, // Allow all origins
   credentials: true
 }));
 
@@ -53,11 +55,13 @@ app.use(
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/instruments", instrumentRoutes);
 app.use("/api/strategies", strategyRoutes);
 app.use("/api/backtest", backtestRoutes);
 app.use("/api/brokers", brokerRoutes);
 app.use("/api/trading", tradingEngineRoutes);
+app.use("/api/admin", adminRoutes);
 
 // WebSocket Server for Market Data
 const wss = new WebSocketServer({ 

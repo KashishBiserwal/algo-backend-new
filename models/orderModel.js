@@ -1,218 +1,201 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const orderSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const OrderSchema = new mongoose.Schema(
+  {
+    // Order identification
+    orderId: { type: String, required: true, unique: true },
+    brokerOrderId: { type: String, required: true },
+    strategyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Strategy",
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    
+    // Trading details
+    tradingSymbol: { type: String, required: true },
+    exchange: { type: String, default: "NFO" },
+    segment: { type: String, default: "NFO" },
+    instrumentToken: { type: String, required: true },
+    exchangeToken: { type: String, required: true },
+    
+    // Order parameters
+    transactionType: { type: String, enum: ["BUY", "SELL"], required: true },
+    quantity: { type: Number, required: true },
+    orderType: { type: String, enum: ["MARKET", "LIMIT", "STOP_LOSS", "STOP_LOSS_MARKET"], default: "MARKET" },
+    productType: { type: String, enum: ["INTRADAY", "DELIVERY", "CNC"], default: "INTRADAY" },
+    price: { type: Number, default: 0 },
+    triggerPrice: { type: Number, default: 0 },
+    
+    // Execution details
+    entryPrice: { type: Number, default: 0 },
+    exitPrice: { type: Number, default: null },
+    averagePrice: { type: Number, default: 0 },
+    filledQuantity: { type: Number, default: 0 },
+    pendingQuantity: { type: Number, default: 0 },
+    
+    // Status tracking
+    orderStatus: { 
+      type: String, 
+      enum: ["PENDING", "COMPLETE", "CANCELLED", "REJECTED", "PARTIALLY_FILLED"], 
+      default: "PENDING" 
+    },
+    tradeStatus: { 
+      type: String, 
+      enum: ["OPEN", "CLOSED", "SQUARED_OFF"], 
+      default: "OPEN" 
+    },
+    
+    // P&L tracking
+    pnl: { type: Number, default: 0 },
+    realizedPnl: { type: Number, default: 0 },
+    unrealizedPnl: { type: Number, default: 0 },
+    
+    // Timestamps
+    orderTimestamp: { type: Date, default: Date.now },
+    entryTimestamp: { type: Date, default: null },
+    exitTimestamp: { type: Date, default: null },
+    lastUpdateTimestamp: { type: Date, default: Date.now },
+    
+    // Exit details
+    exitReason: { type: String, default: null }, // "manual", "stop_loss", "target", "square_off", "strategy_exit"
+    exitType: { type: String, default: null }, // "market", "limit", "stop_loss"
+    
+    // Risk management
+    stopLoss: { type: Number, default: 0 },
+    target: { type: Number, default: 0 },
+    trailingStopLoss: { type: Number, default: 0 },
+    
+    // Additional metadata
+    orderTag: { type: String, default: "Strategy_Order" },
+    orderMessage: { type: String, default: "Order placed by strategy" },
+    isActive: { type: Boolean, default: true },
+    
+    // Broker specific fields
+    brokerClientId: { type: String, required: true },
+    variety: { type: String, default: "NORMAL" },
+    duration: { type: String, default: "DAY" },
+    
+    // Strategy context
+    legIndex: { type: Number, default: 0 }, // Which leg in the strategy this order belongs to
+    strategyLeg: { type: Object, default: {} }, // Store the original leg configuration
+    
+    // Audit fields
+    createdBy: { type: String, required: true },
+    updatedBy: { type: String, default: null },
+    
+    // Broker response
+    brokerResponse: { type: Object, default: {} },
+    
+    // Order modifications
+    modifications: [{
+      timestamp: { type: Date, default: Date.now },
+      field: { type: String, required: true },
+      oldValue: { type: mongoose.Schema.Types.Mixed },
+      newValue: { type: mongoose.Schema.Types.Mixed },
+      reason: { type: String, default: "strategy_modification" }
+    }]
   },
-  strategyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Strategy',
-    required: true
-  },
-  brokerOrderId: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  status: {
-    type: String,
-    enum: ['TRANSIT', 'PENDING', 'REJECTED', 'CANCELLED', 'PART_TRADED', 'TRADED', 'EXPIRED', 'MODIFIED', 'TRIGGERED'],
-    required: true
-  },
-  orderData: {
-    type: mongoose.Schema.Types.Mixed,
-    required: true
-  },
-  result: {
-    type: mongoose.Schema.Types.Mixed,
-    required: true
-  },
-  broker: {
-    type: String,
-    enum: ['dhan', 'angel'],
-    required: true
-  },
-  exchangeSegment: {
-    type: String,
-    enum: ['NSE_EQ', 'NSE_FNO', 'NSE_CURRENCY', 'BSE_EQ', 'BSE_FNO', 'BSE_CURRENCY', 'MCX_COMM'],
-    required: true
-  },
-  transactionType: {
-    type: String,
-    enum: ['BUY', 'SELL'],
-    required: true
-  },
-  productType: {
-    type: String,
-    enum: ['CNC', 'INTRADAY', 'MARGIN', 'MTF', 'CO', 'BO'],
-    required: true
-  },
-  orderType: {
-    type: String,
-    enum: ['LIMIT', 'MARKET', 'STOP_LOSS', 'STOP_LOSS_MARKET'],
-    required: true
-  },
-  securityId: {
-    type: String,
-    required: true
-  },
-  tradingSymbol: {
-    type: String,
-    required: true
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  price: {
-    type: Number,
-    default: 0
-  },
-  triggerPrice: {
-    type: Number,
-    default: 0
-  },
-  averagePrice: {
-    type: Number,
-    default: 0
-  },
-  filledQuantity: {
-    type: Number,
-    default: 0
-  },
-  remainingQuantity: {
-    type: Number,
-    default: 0
-  },
-  pnl: {
-    type: Number,
-    default: 0
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  {
+    timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+    indexes: [
+      { strategyId: 1, orderTimestamp: -1 },
+      { userId: 1, orderTimestamp: -1 },
+      { orderStatus: 1 },
+      { tradeStatus: 1 },
+      { brokerOrderId: 1 }
+    ]
   }
-}, {
-  timestamps: true
+);
+
+// Pre-save middleware to update lastUpdateTimestamp
+OrderSchema.pre("save", function (next) {
+  this.lastUpdateTimestamp = new Date();
+  next();
 });
 
-// Indexes for better query performance
-orderSchema.index({ userId: 1, timestamp: -1 });
-orderSchema.index({ strategyId: 1, timestamp: -1 });
-orderSchema.index({ brokerOrderId: 1 });
-orderSchema.index({ status: 1 });
-orderSchema.index({ broker: 1, timestamp: -1 });
-
-// Virtual for order status
-orderSchema.virtual('isActive').get(function() {
-  return ['TRANSIT', 'PENDING', 'PART_TRADED'].includes(this.status);
-});
-
-orderSchema.virtual('isCompleted').get(function() {
-  return ['TRADED', 'REJECTED', 'CANCELLED', 'EXPIRED'].includes(this.status);
+// Virtual for calculating P&L
+OrderSchema.virtual("calculatedPnl").get(function() {
+  if (this.tradeStatus === "CLOSED" && this.entryPrice && this.exitPrice) {
+    const multiplier = this.transactionType === "BUY" ? 1 : -1;
+    return multiplier * (this.exitPrice - this.entryPrice) * this.filledQuantity;
+  }
+  return 0;
 });
 
 // Method to update order status
-orderSchema.methods.updateStatus = function(newStatus, additionalData = {}) {
-  this.status = newStatus;
-  this.updatedAt = new Date();
-  
-  if (additionalData.averagePrice) {
-    this.averagePrice = additionalData.averagePrice;
+OrderSchema.methods.updateStatus = function(newStatus, reason = null) {
+  this.orderStatus = newStatus;
+  if (reason) {
+    this.orderMessage = reason;
   }
-  
-  if (additionalData.filledQuantity) {
-    this.filledQuantity = additionalData.filledQuantity;
-  }
-  
-  if (additionalData.remainingQuantity) {
-    this.remainingQuantity = additionalData.remainingQuantity;
-  }
-  
-  if (additionalData.pnl) {
-    this.pnl = additionalData.pnl;
-  }
-  
+  this.lastUpdateTimestamp = new Date();
   return this.save();
 };
 
-// Static method to get orders by user
-orderSchema.statics.getUserOrders = function(userId, limit = 50, skip = 0) {
-  return this.find({ userId })
-    .sort({ timestamp: -1 })
-    .limit(limit)
-    .skip(skip)
-    .populate('strategyId', 'name type');
+// Method to close position
+OrderSchema.methods.closePosition = function(exitPrice, exitReason = "manual") {
+  this.exitPrice = exitPrice;
+  this.exitTimestamp = new Date();
+  this.tradeStatus = "CLOSED";
+  this.exitReason = exitReason;
+  this.pnl = this.calculatedPnl;
+  this.realizedPnl = this.pnl;
+  this.unrealizedPnl = 0;
+  this.lastUpdateTimestamp = new Date();
+  return this.save();
+};
+
+// Method to modify order
+OrderSchema.methods.modifyOrder = function(modifications, reason = "strategy_modification") {
+  const modificationRecord = {
+    timestamp: new Date(),
+    reason: reason,
+    modifications: []
+  };
+  
+  for (const [field, newValue] of Object.entries(modifications)) {
+    const oldValue = this[field];
+    this[field] = newValue;
+    modificationRecord.modifications.push({
+      field,
+      oldValue,
+      newValue
+    });
+  }
+  
+  this.modifications.push(modificationRecord);
+  this.lastUpdateTimestamp = new Date();
+  return this.save();
 };
 
 // Static method to get orders by strategy
-orderSchema.statics.getStrategyOrders = function(strategyId, limit = 50, skip = 0) {
-  return this.find({ strategyId })
-    .sort({ timestamp: -1 })
-    .limit(limit)
-    .skip(skip);
+OrderSchema.statics.getOrdersByStrategy = function(strategyId) {
+  return this.find({ strategyId, isActive: true }).sort({ orderTimestamp: -1 });
 };
 
-// Static method to get order statistics
-orderSchema.statics.getOrderStats = function(userId, fromDate = null, toDate = null) {
-  const match = { userId };
-  
-  if (fromDate || toDate) {
-    match.timestamp = {};
-    if (fromDate) match.timestamp.$gte = new Date(fromDate);
-    if (toDate) match.timestamp.$lte = new Date(toDate);
-  }
-  
-  return this.aggregate([
-    { $match: match },
-    {
-      $group: {
-        _id: '$status',
-        count: { $sum: 1 },
-        totalQuantity: { $sum: '$quantity' },
-        totalValue: { $sum: { $multiply: ['$quantity', '$price'] } }
-      }
-    }
-  ]);
+// Static method to get active orders by user
+OrderSchema.statics.getActiveOrdersByUser = function(userId) {
+  return this.find({ 
+    userId, 
+    isActive: true, 
+    orderStatus: { $in: ["PENDING", "PARTIALLY_FILLED"] } 
+  }).sort({ orderTimestamp: -1 });
 };
 
-// Static method to get PnL summary
-orderSchema.statics.getPnLSummary = function(userId, fromDate = null, toDate = null) {
-  const match = { userId, status: 'TRADED' };
-  
-  if (fromDate || toDate) {
-    match.timestamp = {};
-    if (fromDate) match.timestamp.$gte = new Date(fromDate);
-    if (toDate) match.timestamp.$lte = new Date(toDate);
-  }
-  
-  return this.aggregate([
-    { $match: match },
-    {
-      $group: {
-        _id: null,
-        totalPnL: { $sum: '$pnl' },
-        totalOrders: { $sum: 1 },
-        profitableOrders: {
-          $sum: {
-            $cond: [{ $gt: ['$pnl', 0] }, 1, 0]
-          }
-        },
-        losingOrders: {
-          $sum: {
-            $cond: [{ $lt: ['$pnl', 0] }, 1, 0]
-          }
-        }
-      }
-    }
-  ]);
+// Static method to get open positions by user
+OrderSchema.statics.getOpenPositionsByUser = function(userId) {
+  return this.find({ 
+    userId, 
+    isActive: true, 
+    tradeStatus: "OPEN",
+    orderStatus: "COMPLETE"
+  }).sort({ entryTimestamp: -1 });
 };
 
-module.exports = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", OrderSchema);
+module.exports = Order;

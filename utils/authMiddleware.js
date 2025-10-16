@@ -17,14 +17,18 @@ const verifyToken = (req) => {
 const adminAuth = (req, res, next) => {
   try {
     const payload = verifyToken(req);
-    console.log("Admin payload:", payload);
+    console.log("🔐 Admin payload:", payload);
 
     if (payload.role !== "ADMIN") {
+      console.log("❌ Invalid admin role:", payload.role);
       return res.status(403).json({ success: false, message: "Admins only" });
     }
+    
     req.user = { id: payload.userId, role: payload.role };
+    console.log("✅ Admin auth successful for user:", payload.userId);
     next();
   } catch (err) {
+    console.error("❌ Admin auth error:", err.message);
     return res
       .status(401)
       .json({ success: false, message: err.message || "Unauthorized" });
