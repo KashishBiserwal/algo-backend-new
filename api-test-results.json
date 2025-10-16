@@ -1,0 +1,1252 @@
+{
+  "timestamp": "2025-10-13T06:13:55.450Z",
+  "baseUrl": "http://localhost:4000",
+  "summary": {
+    "total": 31,
+    "passed": 20,
+    "failed": 11,
+    "successRate": "64.52"
+  },
+  "details": [
+    {
+      "name": "Health Check",
+      "success": true,
+      "status": 200,
+      "data": {
+        "ok": true,
+        "message": "Authentication server is running",
+        "timestamp": "2025-10-13T06:13:42.820Z"
+      }
+    },
+    {
+      "name": "Root Endpoint",
+      "success": true,
+      "status": 200,
+      "data": {
+        "message": "Algo Trading Authentication Server",
+        "version": "1.0.0",
+        "endpoints": {
+          "auth": "/api/auth",
+          "health": "/health"
+        }
+      }
+    },
+    {
+      "name": "User Registration",
+      "success": true,
+      "status": 201,
+      "data": {
+        "message": "User registered successfully",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGVjOTg5Njg0ZDVlYWNkMTg4NDRkZjkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2MDMzNjAyMywiZXhwIjoxNzYwOTQwODIzfQ.bl9XB9fUY6MrdGglNISJaFrSW5RbgW15iodjscgg5SQ",
+        "user": {
+          "id": "68ec989684d5eacd18844df9",
+          "username": "testuser_1760336022836",
+          "email": "test_1760336022836@example.com",
+          "role": "USER"
+        }
+      }
+    },
+    {
+      "name": "User Login",
+      "success": true,
+      "status": 200,
+      "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGVjOTg5Njg0ZDVlYWNkMTg4NDRkZjkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2MDMzNjAyMywiZXhwIjoxNzYwOTQwODIzfQ.bl9XB9fUY6MrdGglNISJaFrSW5RbgW15iodjscgg5SQ",
+        "user": {
+          "id": "68ec989684d5eacd18844df9",
+          "username": "testuser_1760336022836",
+          "email": "test_1760336022836@example.com",
+          "role": "USER"
+        }
+      }
+    },
+    {
+      "name": "Admin Registration",
+      "success": false,
+      "status": 500,
+      "error": "Request failed with status code 500",
+      "data": {
+        "message": "Internal server error"
+      }
+    },
+    {
+      "name": "Admin Login",
+      "success": false,
+      "status": 404,
+      "error": "Request failed with status code 404",
+      "data": {
+        "message": "Admin not found"
+      }
+    },
+    {
+      "name": "Get Current User",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "user": {
+          "id": "68ec989684d5eacd18844df9",
+          "username": "testuser_1760336022836",
+          "email": "test_1760336022836@example.com",
+          "role": "USER"
+        }
+      }
+    },
+    {
+      "name": "Get Popular Instruments",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Popular multi-broker instruments fetched successfully",
+        "data": {
+          "options": [],
+          "indices": [],
+          "equity": [
+            {
+              "id": "TCS-EQUITY-NSE",
+              "symbol": "TCS",
+              "name": "TATA CONSULTANCY SERVICES LTD",
+              "exchange": "NSE",
+              "segment": "EQUITY",
+              "instrument_type": "EQUITY",
+              "lot_size": 1,
+              "expiry": null,
+              "strike_price": null,
+              "brokers": {
+                "angel": {
+                  "token": "123663",
+                  "tradable": true,
+                  "last_updated": "2025-10-03T08:19:50.617Z"
+                },
+                "dhan": {
+                  "token": "1114606",
+                  "tradable": true,
+                  "last_updated": "2025-10-03T08:19:50.617Z"
+                }
+              }
+            }
+          ],
+          "futures": [
+            {
+              "id": "TCS-EQUITY-NSE",
+              "symbol": "TCS",
+              "name": "TATA CONSULTANCY SERVICES LTD",
+              "exchange": "NSE",
+              "segment": "EQUITY",
+              "instrument_type": "EQUITY",
+              "lot_size": 1,
+              "expiry": null,
+              "strike_price": null,
+              "brokers": {
+                "angel": {
+                  "token": "123663",
+                  "tradable": true,
+                  "last_updated": "2025-10-03T08:19:50.617Z"
+                },
+                "dhan": {
+                  "token": "1114606",
+                  "tradable": true,
+                  "last_updated": "2025-10-03T08:19:50.617Z"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Instruments",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Instruments search completed successfully",
+        "data": [
+          {
+            "id": "AATLFUT-FUTSTK-BSE",
+            "symbol": "AATLFUT",
+            "name": "APLAPOLLO DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 350,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1106807",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:01.564Z"
+              }
+            }
+          },
+          {
+            "id": "AATLOPT-OPTSTK-BSE",
+            "symbol": "AATLOPT",
+            "name": "APLAPOLLO 24 DEC 1680 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 350,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 1680,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1101801",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.269Z"
+              }
+            }
+          },
+          {
+            "id": "ABBLFUT-FUTSTK-BSE",
+            "symbol": "ABBLFUT",
+            "name": "ABB DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 125,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1112452",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:02.369Z"
+              }
+            }
+          },
+          {
+            "id": "ABBLOPT-OPTSTK-BSE",
+            "symbol": "ABBLOPT",
+            "name": "ABB 24 DEC 4500 PUT",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 125,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 4500,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1102837",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.514Z"
+              }
+            }
+          },
+          {
+            "id": "ABCLFUT-FUTSTK-BSE",
+            "symbol": "ABCLFUT",
+            "name": "ABCAPITAL DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 3100,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1106404",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:01.518Z"
+              }
+            }
+          },
+          {
+            "id": "ABCLOPT-OPTSTK-BSE",
+            "symbol": "ABCLOPT",
+            "name": "ABCAPITAL 24 DEC 290 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 3100,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 290,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1101888",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.284Z"
+              }
+            }
+          },
+          {
+            "id": "ADELFUT-FUTSTK-BSE",
+            "symbol": "ADELFUT",
+            "name": "ADANIENT DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 300,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1107986",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:01.852Z"
+              }
+            }
+          },
+          {
+            "id": "ADELOPT-OPTSTK-BSE",
+            "symbol": "ADELOPT",
+            "name": "ADANIENT 27 NOV 2800 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 300,
+            "expiry": "2025-11-27T00:00:00.000Z",
+            "strike_price": 2800,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1100044",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:03:59.902Z"
+              }
+            }
+          },
+          {
+            "id": "AENLFUT-FUTSTK-BSE",
+            "symbol": "AENLFUT",
+            "name": "AMBER DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 100,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1115988",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:03.357Z"
+              }
+            }
+          },
+          {
+            "id": "AENLOPT-OPTSTK-BSE",
+            "symbol": "AENLOPT",
+            "name": "AMBER 30 OCT 9100 PUT",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 100,
+            "expiry": "2025-10-30T00:00:00.000Z",
+            "strike_price": 9100,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1101386",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.116Z"
+              }
+            }
+          },
+          {
+            "id": "AESLFUT-FUTSTK-BSE",
+            "symbol": "AESLFUT",
+            "name": "ADANIENSOL DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 675,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1114299",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:02.824Z"
+              }
+            }
+          },
+          {
+            "id": "AESLOPT-OPTSTK-BSE",
+            "symbol": "AESLOPT",
+            "name": "ADANIENSOL 27 NOV 1020 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 675,
+            "expiry": "2025-11-27T00:00:00.000Z",
+            "strike_price": 1020,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1100002",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:03:59.885Z"
+              }
+            }
+          },
+          {
+            "id": "AGELFUT-FUTSTK-BSE",
+            "symbol": "AGELFUT",
+            "name": "ADANIGREEN DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 600,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1103281",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.798Z"
+              }
+            }
+          },
+          {
+            "id": "AGELOPT-OPTSTK-BSE",
+            "symbol": "AGELOPT",
+            "name": "ADANIGREEN 27 NOV 1180 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 600,
+            "expiry": "2025-11-27T00:00:00.000Z",
+            "strike_price": 1180,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1100032",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:03:59.899Z"
+              }
+            }
+          },
+          {
+            "id": "AHELFUT-FUTSTK-BSE",
+            "symbol": "AHELFUT",
+            "name": "APOLLOHOSP DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 125,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1101920",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.288Z"
+              }
+            }
+          },
+          {
+            "id": "AHELOPT-OPTSTK-BSE",
+            "symbol": "AHELOPT",
+            "name": "APOLLOHOSP 24 DEC 8000 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 125,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 8000,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1101724",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.158Z"
+              }
+            }
+          },
+          {
+            "id": "ALKMFUT-FUTSTK-BSE",
+            "symbol": "ALKMFUT",
+            "name": "ALKEM DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 125,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1104232",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.976Z"
+              }
+            }
+          },
+          {
+            "id": "ALKMOPT-OPTSTK-BSE",
+            "symbol": "ALKMOPT",
+            "name": "ALKEM 30 OCT 5900 PUT",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 125,
+            "expiry": "2025-10-30T00:00:00.000Z",
+            "strike_price": 5900,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1100003",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:03:59.891Z"
+              }
+            }
+          },
+          {
+            "id": "ALLDFUT-FUTSTK-BSE",
+            "symbol": "ALLDFUT",
+            "name": "ASHOKLEY DEC  FUT",
+            "exchange": "BSE",
+            "segment": "FUTSTK",
+            "instrument_type": "FUTSTK",
+            "lot_size": 5000,
+            "expiry": "2025-12-24T00:00:00.000Z",
+            "strike_price": 0,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1106657",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:01.543Z"
+              }
+            }
+          },
+          {
+            "id": "ALLDOPT-OPTSTK-BSE",
+            "symbol": "ALLDOPT",
+            "name": "ASHOKLEY 30 OCT 162.5 CALL",
+            "exchange": "BSE",
+            "segment": "OPTSTK",
+            "instrument_type": "OPTSTK",
+            "lot_size": 5000,
+            "expiry": "2025-10-30T00:00:00.000Z",
+            "strike_price": 162.5,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": false,
+                "last_updated": null
+              },
+              "dhan": {
+                "token": "1100597",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:04:00.074Z"
+              }
+            }
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 5069,
+          "pages": 254,
+          "hasNext": true,
+          "hasPrev": false
+        }
+      }
+    },
+    {
+      "name": "Get Instruments by Category",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "equity instruments fetched successfully",
+        "data": [
+          {
+            "id": "BHARTIARTL-EQUITY-NSE",
+            "symbol": "BHARTIARTL",
+            "name": "BHARTI AIRTEL LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.077Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.077Z"
+              }
+            }
+          },
+          {
+            "id": "HDFC-EQUITY-NSE",
+            "symbol": "HDFC",
+            "name": "HDFC LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.657Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.657Z"
+              }
+            }
+          },
+          {
+            "id": "HDFCBANK-EQUITY-NSE",
+            "symbol": "HDFCBANK",
+            "name": "HDFC BANK LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.378Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.378Z"
+              }
+            }
+          },
+          {
+            "id": "ICICIBANK-EQUITY-NSE",
+            "symbol": "ICICIBANK",
+            "name": "ICICI BANK LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.777Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.777Z"
+              }
+            }
+          },
+          {
+            "id": "INFY-EQUITY-NSE",
+            "symbol": "INFY",
+            "name": "INFOSYS LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.517Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.517Z"
+              }
+            }
+          },
+          {
+            "id": "ITC-EQUITY-NSE",
+            "symbol": "ITC",
+            "name": "ITC LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.216Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.216Z"
+              }
+            }
+          },
+          {
+            "id": "KOTAKBANK-EQUITY-NSE",
+            "symbol": "KOTAKBANK",
+            "name": "KOTAK MAHINDRA BANK LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.917Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.917Z"
+              }
+            }
+          },
+          {
+            "id": "RELIANCE-EQUITY-NSE",
+            "symbol": "RELIANCE",
+            "name": "RELIANCE INDUSTRIES LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.092Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:16.092Z"
+              }
+            }
+          },
+          {
+            "id": "SBIN-EQUITY-NSE",
+            "symbol": "SBIN",
+            "name": "STATE BANK OF INDIA",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.357Z"
+              },
+              "dhan": {
+                "token": null,
+                "tradable": true,
+                "last_updated": "2025-10-03T08:17:17.357Z"
+              }
+            }
+          },
+          {
+            "id": "TCS-EQUITY-NSE",
+            "symbol": "TCS",
+            "name": "TATA CONSULTANCY SERVICES LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": "123663",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:19:50.617Z"
+              },
+              "dhan": {
+                "token": "1114606",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:19:50.617Z"
+              }
+            }
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 50,
+          "total": 10,
+          "pages": 1,
+          "hasNext": false,
+          "hasPrev": false
+        }
+      }
+    },
+    {
+      "name": "Get Symbols for Category",
+      "success": false,
+      "status": 500,
+      "error": "Request failed with status code 500",
+      "data": {
+        "success": false,
+        "message": "Failed to fetch symbols for category",
+        "error": "Instrument is not defined"
+      }
+    },
+    {
+      "name": "Get Instrument Statistics",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Instrument statistics fetched successfully",
+        "data": {
+          "total": 5069,
+          "angelTradable": 4640,
+          "dhanTradable": 446,
+          "byType": [
+            {
+              "_id": "OPTSTK",
+              "count": 4732,
+              "angelTradable": 4526,
+              "dhanTradable": 206
+            },
+            {
+              "_id": "FUTSTK",
+              "count": 206,
+              "angelTradable": 0,
+              "dhanTradable": 206
+            },
+            {
+              "_id": "AMXIDX",
+              "count": 97,
+              "angelTradable": 97,
+              "dhanTradable": 0
+            },
+            {
+              "_id": "EQUITY",
+              "count": 10,
+              "angelTradable": 10,
+              "dhanTradable": 10
+            },
+            {
+              "_id": "FUTCUR",
+              "count": 7,
+              "angelTradable": 0,
+              "dhanTradable": 7
+            },
+            {
+              "_id": "INDEX",
+              "count": 7,
+              "angelTradable": 7,
+              "dhanTradable": 7
+            },
+            {
+              "_id": "OPTCUR",
+              "count": 4,
+              "angelTradable": 0,
+              "dhanTradable": 4
+            },
+            {
+              "_id": "FUTIDX",
+              "count": 3,
+              "angelTradable": 0,
+              "dhanTradable": 3
+            },
+            {
+              "_id": "OPTIDX",
+              "count": 3,
+              "angelTradable": 0,
+              "dhanTradable": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Multi-Broker Instruments",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Multi-broker instruments fetched successfully",
+        "data": [
+          {
+            "id": "TCS-EQUITY-NSE",
+            "symbol": "TCS",
+            "name": "TATA CONSULTANCY SERVICES LTD",
+            "exchange": "NSE",
+            "segment": "EQUITY",
+            "instrument_type": "EQUITY",
+            "lot_size": 1,
+            "expiry": null,
+            "strike_price": null,
+            "brokers": {
+              "angel": {
+                "token": "123663",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:19:50.617Z"
+              },
+              "dhan": {
+                "token": "1114606",
+                "tradable": true,
+                "last_updated": "2025-10-03T08:19:50.617Z"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Instrument by ID",
+      "success": false,
+      "status": 404,
+      "error": "Request failed with status code 404",
+      "data": {
+        "success": false,
+        "message": "Instrument not found"
+      }
+    },
+    {
+      "name": "Create Strategy",
+      "success": false,
+      "status": 400,
+      "error": "Request failed with status code 400",
+      "data": {
+        "success": false,
+        "message": "start_time is required for indicator strategy"
+      }
+    },
+    {
+      "name": "Get User Strategies",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Strategies fetched successfully",
+        "data": {
+          "strategies": [],
+          "pagination": {
+            "current": 1,
+            "pages": 0,
+            "total": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Validate Strategy",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Strategy validation failed",
+        "data": {
+          "valid": false,
+          "validations": {
+            "time_format_valid": false,
+            "trading_days_selected": false
+          }
+        }
+      }
+    },
+    {
+      "name": "Check Backtest Data",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Data available for NIFTY",
+        "data": {
+          "available": true,
+          "instrument": "NIFTY",
+          "totalBars": 165,
+          "dateRange": {
+            "from": "2023-01-02T03:45:00.000Z",
+            "to": "2023-08-31T03:45:00.000Z"
+          },
+          "latestPrice": 19253.80078125
+        }
+      }
+    },
+    {
+      "name": "Fetch Backtest Data",
+      "success": false,
+      "status": 0,
+      "error": "timeout of 10000ms exceeded",
+      "data": null
+    },
+    {
+      "name": "Get Available Brokers",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Available brokers fetched successfully",
+        "data": [
+          {
+            "id": "angel",
+            "name": "Angel One",
+            "description": "Angel One SmartAPI for trading",
+            "logo": "/images/brokers/angel-one.png",
+            "features": [
+              "Equity",
+              "F&O",
+              "Currency",
+              "Commodity"
+            ],
+            "isAvailable": true,
+            "authUrl": "/api/brokers/angel/connect"
+          },
+          {
+            "id": "dhan",
+            "name": "Dhan",
+            "description": "Dhan API for trading",
+            "logo": "/images/brokers/dhan.png",
+            "features": [
+              "Equity",
+              "F&O",
+              "Currency"
+            ],
+            "isAvailable": true,
+            "authUrl": "/api/brokers/dhan/connect"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Connected Brokers",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Connected brokers fetched successfully",
+        "data": []
+      }
+    },
+    {
+      "name": "Connect Angel One",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Angel One login URL generated successfully",
+        "data": {
+          "loginUrl": "https://smartapi.angelbroking.com/publisher-login?api_key=rlEqSn3Q&response_type=code&state=a59fff80ceb869f840aca13bfbc6ca55&redirect_uri=https%3A%2F%2Fx7klbpj3-3000.inc1.devtunnels.ms",
+          "state": "a59fff80ceb869f840aca13bfbc6ca55"
+        }
+      }
+    },
+    {
+      "name": "Check Angel One Status",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "data": {
+          "connected": false,
+          "message": "Not connected to Angel One"
+        }
+      }
+    },
+    {
+      "name": "Get Angel One Profile",
+      "success": false,
+      "status": 404,
+      "error": "Request failed with status code 404",
+      "data": {
+        "success": false,
+        "message": "Angel One not connected"
+      }
+    },
+    {
+      "name": "Connect Dhan",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "message": "Dhan sandbox connection established successfully",
+        "data": {
+          "broker": "dhan",
+          "isConnected": true,
+          "dhanClientId": "2509247548",
+          "dhanClientName": "Sandbox User",
+          "isSandbox": true
+        }
+      }
+    },
+    {
+      "name": "Check Dhan Status",
+      "success": false,
+      "status": 500,
+      "error": "Request failed with status code 500",
+      "data": {
+        "success": false,
+        "message": "Failed to check Dhan connection",
+        "error": "Can't save() the same doc multiple times in parallel. Document: 68ec98a284d5eacd18844eb9"
+      }
+    },
+    {
+      "name": "Get Dhan Profile",
+      "success": false,
+      "status": 400,
+      "error": "Request failed with status code 400",
+      "data": {
+        "success": false,
+        "message": "Failed to fetch profile",
+        "error": "Request failed with status code 400"
+      }
+    },
+    {
+      "name": "Get Trading Engine Status",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "data": {
+          "isRunning": false,
+          "activeStrategies": 0,
+          "connectedUsers": 0,
+          "totalOrderQueues": 0
+        }
+      }
+    },
+    {
+      "name": "Get User Portfolio",
+      "success": false,
+      "status": 400,
+      "error": "Request failed with status code 400",
+      "data": {
+        "success": false,
+        "message": "Failed to get portfolio",
+        "error": "No broker connection found"
+      }
+    },
+    {
+      "name": "Get User Orders",
+      "success": true,
+      "status": 200,
+      "data": {
+        "success": true,
+        "data": {
+          "orders": [],
+          "total": 0,
+          "limit": 50,
+          "skip": 0
+        }
+      }
+    },
+    {
+      "name": "Get Order Statistics",
+      "success": false,
+      "status": 500,
+      "error": "Request failed with status code 500",
+      "data": {
+        "success": false,
+        "message": "Failed to get order details",
+        "error": "Cast to ObjectId failed for value \"statistics\" (type string) at path \"_id\" for model \"Order\""
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "algo-backend-new",
+  "version": "1.0.0",
+  "description": "New authentication server for algo trading platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js",
+    "dev": "node index.js"
+  },
+  "author": "algo",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.6.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.5.45",
+    "mongoose": "^7.6.3",
+    "node-cron": "^4.2.1",
+    "nodemon": "^3.1.10",
+    "ws": "^8.18.3",
+    "yahoo-finance2": "^2.11.2"
+  }
+}
