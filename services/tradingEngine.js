@@ -4,6 +4,7 @@ const BrokerConnection = require('../models/brokerConnectionModel');
 const Strategy = require('../models/strategyModel');
 const Order = require('../models/orderModel');
 const Trade = require('../models/tradeModel');
+const User = require('../models/userModel');
 
 class TradingEngine {
   constructor({ logger = console } = {}) {
@@ -580,6 +581,7 @@ class TradingEngine {
       // Add strategy to active strategies
       this.activeStrategies.set(strategyId, {
         ...strategy.toObject(),
+        userId: userId, // Ensure userId is set for getActiveStrategiesForUser
         client: client,
         isActive: true,
         lastRun: null,

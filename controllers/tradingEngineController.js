@@ -7,6 +7,16 @@ const Instrument = require('../models/instrumentModel');
 // Initialize trading engine instance
 const tradingEngine = new TradingEngine();
 
+// Initialize the trading engine when the controller loads
+(async () => {
+  try {
+    await tradingEngine.initialize();
+    console.log('✅ Trading engine initialized in controller');
+  } catch (error) {
+    console.error('❌ Failed to initialize trading engine in controller:', error);
+  }
+})();
+
 // Validate Dhan instrument tokens for strategy
 const validateDhanInstrumentTokens = async (strategy) => {
   try {
