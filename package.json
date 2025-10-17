@@ -24,6 +24,7 @@
     "mongoose": "^7.6.3",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.9",
     "nodemon": "^3.1.10",
     "uuid": "^8.3.2",
     "ws": "^8.18.3",

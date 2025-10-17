@@ -3,6 +3,7 @@ const adminModel = require("../models/adminModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
+const { sendPasswordResetEmail, sendPasswordResetSuccessEmail } = require("../utils/emailService");
 
 const JWT_SECRET = process.env.JWT_SECRET || "Aniket@1234";
 
@@ -477,6 +478,184 @@ const updateRiskDisclaimerAcceptance = async (req, res) => {
   }
 };
 
+// Forgot Password - Send reset code
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required"
+      });
+    }
+
+    // Check if user exists
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email address"
+      });
+    }
+
+    // Generate 6-digit reset code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Set expiration time (10 minutes from now)
+    const resetExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Save reset code and expiration to user
+    user.passwordResetToken = resetCode;
+    user.passwordResetExpires = resetExpires;
+    await user.save();
+
+    // Send email with reset code
+    const emailResult = await sendPasswordResetEmail(email, resetCode);
+    
+    if (!emailResult.success) {
+      console.error("❌ Failed to send reset email:", emailResult.error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send reset email. Please try again."
+      });
+    }
+
+    console.log("✅ Password reset code sent successfully to:", email);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset code sent to your email address",
+      data: {
+        email: email,
+        expiresIn: "10 minutes"
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error in forgot password:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+// Reset Password - Verify code and update password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, resetCode, newPassword } = req.body;
+
+    if (!email || !resetCode || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, reset code, and new password are required"
+      });
+    }
+
+    // Check if user exists
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if reset code matches and is not expired
+    if (!user.passwordResetToken || user.passwordResetToken !== resetCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reset code"
+      });
+    }
+
+    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset code has expired. Please request a new one."
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password and clear reset fields
+    user.password = hashedPassword;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    // Send success email
+    await sendPasswordResetSuccessEmail(email);
+
+    console.log("✅ Password reset successfully for user:", email);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now log in with your new password."
+    });
+
+  } catch (error) {
+    console.error("❌ Error in reset password:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
+// Verify Reset Code - Check if code is valid
+const verifyResetCode = async (req, res) => {
+  try {
+    const { email, resetCode } = req.body;
+
+    if (!email || !resetCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and reset code are required"
+      });
+    }
+
+    // Check if user exists
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if reset code matches and is not expired
+    if (!user.passwordResetToken || user.passwordResetToken !== resetCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reset code"
+      });
+    }
+
+    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset code has expired. Please request a new one."
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Reset code is valid"
+    });
+
+  } catch (error) {
+    console.error("❌ Error verifying reset code:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -489,4 +668,7 @@ module.exports = {
   getUserSubscriptions,
   changeAdminPassword,
   updateRiskDisclaimerAcceptance,
+  forgotPassword,
+  resetPassword,
+  verifyResetCode,
 };

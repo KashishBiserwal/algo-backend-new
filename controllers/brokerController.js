@@ -441,141 +441,201 @@ const getAngelOneProfile = async (req, res) => {
   }
 };
 
-// Connect to Dhan
+// Connect to Dhan with manual token input
 const connectDhan = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Check if we have sandbox credentials (direct token)
-    if (DHAN_SANDBOX_TOKEN && DHAN_SANDBOX_CLIENT_ID) {
-      console.log('Using Dhan sandbox credentials for user:', userId);
-      
-      // Save or update broker connection with sandbox credentials
-      const existingConnection = await BrokerConnection.findByUserAndBroker(userId, 'dhan');
-      
-      if (existingConnection) {
-        // Update existing connection
-        existingConnection.dhanClientId = DHAN_SANDBOX_CLIENT_ID;
-        existingConnection.dhanAccessToken = DHAN_SANDBOX_TOKEN;
-        existingConnection.isConnected = true;
-        existingConnection.isActive = true;
-        existingConnection.connectedAt = new Date();
-        existingConnection.lastUsedAt = new Date();
-        existingConnection.profile = {
-          name: 'Sandbox User',
-          clientCode: DHAN_SANDBOX_CLIENT_ID,
-          dhanClientId: DHAN_SANDBOX_CLIENT_ID,
-          givenPowerOfAttorney: true,
-          isSandbox: true
-        };
-        existingConnection.clearError();
-        
-        await existingConnection.save();
-        console.log(`✅ Updated Dhan sandbox credentials for user ${userId}`);
-      } else {
-        // Create new connection
-        const newConnection = new BrokerConnection({
-          userId: userId,
-          broker: 'dhan',
-          dhanClientId: DHAN_SANDBOX_CLIENT_ID,
-          dhanAccessToken: DHAN_SANDBOX_TOKEN,
-          isConnected: true,
-          isActive: true,
-          connectedAt: new Date(),
-          lastUsedAt: new Date(),
-          profile: {
-            name: 'Sandbox User',
-            clientCode: DHAN_SANDBOX_CLIENT_ID,
-            dhanClientId: DHAN_SANDBOX_CLIENT_ID,
-            givenPowerOfAttorney: true,
-            isSandbox: true
-          }
-        });
-        
-        await newConnection.save();
-        console.log(`✅ Created Dhan sandbox credentials for user ${userId}`);
-      }
+    const { dhanClientId, accessToken } = req.body;
 
-      return res.status(200).json({
-        success: true,
-        message: 'Dhan sandbox connection established successfully',
-        data: {
-          broker: 'dhan',
-          isConnected: true,
-          dhanClientId: DHAN_SANDBOX_CLIENT_ID,
-          dhanClientName: 'Sandbox User',
-          isSandbox: true
-        }
-      });
-    }
-    
-    // Fallback to OAuth flow if no sandbox credentials
-    if (!DHAN_API_KEY || !DHAN_API_SECRET) {
-      return res.status(500).json({
-        success: false,
-        message: 'Dhan API credentials not configured'
-      });
-    }
-
-    // Generate a unique session ID for this user
-    const sessionId = crypto.randomBytes(16).toString('hex');
-    
-    // Store the user ID in session with the session ID as key
-    req.session[`dhan_${sessionId}`] = userId;
-    
-    // Create a temporary database record as fallback
-    const tempRecord = new BrokerConnection({
-      userId: userId,
-      broker: 'dhan',
-      dhanAccessToken: sessionId, // Use sessionId as temporary accessToken
-      isConnected: false,
-      isActive: true
-    });
-    await tempRecord.save();
-
-    // Step 1: Generate Consent
-    const authUrl = process.env.DHAN_AUTH_URL || 'https://auth.dhan.co';
-    const consentResponse = await fetch(`${authUrl}/app/generate-consent`, {
-      method: 'POST',
-      headers: {
-        'app_id': DHAN_API_KEY,
-        'app_secret': DHAN_API_SECRET
-      }
-    });
-
-    const consentData = await consentResponse.json();
-    
-    if (!consentData.consentAppId) {
+    if (!dhanClientId || !accessToken) {
       return res.status(400).json({
         success: false,
-        message: 'Failed to generate consent'
+        message: 'Dhan Client ID and Access Token are required'
       });
     }
 
-    // Store consentAppId in session
-    req.session[`dhan_consent_${sessionId}`] = consentData.consentAppId;
+    console.log(`Connecting Dhan for user ${userId} with client ID: ${dhanClientId}`);
 
-    // Generate Dhan login URL
-    const loginUrl = `${authUrl}/login/consentApp-login?consentAppId=${consentData.consentAppId}`;
+    // Test the connection first
+    const testResult = await testDhanConnection(dhanClientId, accessToken);
     
-    console.log(`Generated Dhan login URL for user ${userId}: ${loginUrl}`);
+    if (!testResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Dhan credentials or connection failed',
+        error: testResult.error
+      });
+    }
+
+    // Save or update broker connection
+    // First try to find any existing connection (regardless of status)
+    let existingConnection = await BrokerConnection.findOne({
+      userId: userId,
+      broker: 'dhan'
+    });
     
+    if (existingConnection) {
+      // Update existing connection
+      existingConnection.dhanClientId = dhanClientId;
+      existingConnection.dhanAccessToken = accessToken;
+      existingConnection.isConnected = true;
+      existingConnection.isActive = true;
+      existingConnection.connectedAt = new Date();
+      existingConnection.lastUsedAt = new Date();
+      existingConnection.profile = testResult.profile;
+      existingConnection.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      existingConnection.lastError = undefined; // Clear error without calling save()
+      
+      await existingConnection.save();
+      console.log(`✅ Updated Dhan credentials for user ${userId}`);
+    } else {
+      // Create new connection
+      const newConnection = new BrokerConnection({
+        userId: userId,
+        broker: 'dhan',
+        dhanClientId: dhanClientId,
+        dhanAccessToken: accessToken,
+        isConnected: true,
+        isActive: true,
+        connectedAt: new Date(),
+        lastUsedAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+        profile: testResult.profile
+      });
+      
+      await newConnection.save();
+      console.log(`✅ Created Dhan credentials for user ${userId}`);
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Dhan login URL generated successfully',
+      message: 'Dhan connection established successfully',
       data: {
-        loginUrl,
-        consentAppId: consentData.consentAppId,
-        state: sessionId
+        broker: 'dhan',
+        isConnected: true,
+        dhanClientId: dhanClientId,
+        profile: testResult.profile,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
       }
     });
+
   } catch (error) {
     console.error('Error connecting to Dhan:', error);
+    
+    // Handle duplicate key error specifically
+    if (error.code === 11000) {
+      console.log('Duplicate key error detected, attempting to update existing connection...');
+      try {
+        // Try to find and update the existing connection
+        const existingConnection = await BrokerConnection.findOne({
+          userId: userId,
+          broker: 'dhan'
+        });
+        
+        if (existingConnection) {
+          existingConnection.dhanClientId = dhanClientId;
+          existingConnection.dhanAccessToken = accessToken;
+          existingConnection.isConnected = true;
+          existingConnection.isActive = true;
+          existingConnection.connectedAt = new Date();
+          existingConnection.lastUsedAt = new Date();
+          existingConnection.profile = testResult.profile;
+          existingConnection.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          existingConnection.lastError = undefined; // Clear error without calling save()
+          
+          await existingConnection.save();
+          console.log(`✅ Updated existing Dhan connection for user ${userId}`);
+          
+          return res.status(200).json({
+            success: true,
+            message: 'Dhan connection updated successfully',
+            data: {
+              broker: 'dhan',
+              isConnected: true,
+              dhanClientId: dhanClientId,
+              profile: testResult.profile,
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+            }
+          });
+        }
+      } catch (updateError) {
+        console.error('Error updating existing connection:', updateError);
+      }
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to connect to Dhan',
       error: error.message
     });
+  }
+};
+
+// Test Dhan connection with provided credentials
+const testDhanConnection = async (dhanClientId, accessToken) => {
+  try {
+    const response = await fetch('https://api.dhan.co/v2/profile', {
+      method: 'GET',
+      headers: {
+        'access-token': accessToken,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${response.statusText}`
+      };
+    }
+
+    const profileData = await response.json();
+    
+    if (!profileData.dhanClientId) {
+      return {
+        success: false,
+        error: 'Invalid response from Dhan API'
+      };
+    }
+
+    // Parse token validity date
+    let tokenValidity = null;
+    if (profileData.tokenValidity) {
+      try {
+        // Parse date format like "30/03/2025 15:37"
+        const [datePart, timePart] = profileData.tokenValidity.split(' ');
+        const [day, month, year] = datePart.split('/');
+        tokenValidity = new Date(`${year}-${month}-${day}T${timePart}:00`);
+      } catch (error) {
+        console.warn('Could not parse token validity date:', error);
+      }
+    }
+
+    const profile = {
+      dhanClientId: profileData.dhanClientId,
+      tokenValidity: profileData.tokenValidity,
+      activeSegment: profileData.activeSegment,
+      ddpi: profileData.ddpi,
+      mtf: profileData.mtf,
+      dataPlan: profileData.dataPlan,
+      dataValidity: profileData.dataValidity,
+      name: `Dhan Client ${profileData.dhanClientId}`,
+      clientCode: profileData.dhanClientId,
+      isSandbox: false
+    };
+
+    return {
+      success: true,
+      profile: profile,
+      tokenValidity: tokenValidity
+    };
+
+  } catch (error) {
+    console.error('Error testing Dhan connection:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
 
@@ -731,20 +791,14 @@ const checkDhanConnection = async (req, res) => {
       });
     }
 
-    // Test the connection
-    const client = new DhanClient({
-      dhanClientId: connection.dhanClientId,
-      accessToken: connection.dhanAccessToken,
-      isSandbox: connection.profile?.isSandbox || false
-    });
-
-    const testResult = await client.testConnection();
+    // Test the connection using the new profile API
+    const testResult = await testDhanConnection(connection.dhanClientId, connection.dhanAccessToken);
     
     if (testResult.success) {
       // Update profile information
-      connection.profile = { ...connection.profile, ...testResult.profile };
+      connection.profile = testResult.profile;
       connection.lastUsedAt = new Date();
-      connection.clearError();
+      connection.lastError = undefined; // Clear error without calling save()
       await connection.save();
       
       res.status(200).json({
@@ -825,15 +879,15 @@ const getDhanProfile = async (req, res) => {
       });
     }
 
-    const client = new DhanClient({
-      dhanClientId: connection.dhanClientId,
-      accessToken: connection.dhanAccessToken,
-      isSandbox: connection.profile?.isSandbox || false
-    });
-
-    const testResult = await client.testConnection();
+    // Fetch fresh profile data using the new API
+    const testResult = await testDhanConnection(connection.dhanClientId, connection.dhanAccessToken);
     
     if (testResult.success) {
+      // Update the stored profile
+      connection.profile = testResult.profile;
+      connection.lastUsedAt = new Date();
+      await connection.save();
+
       res.status(200).json({
         success: true,
         message: 'Profile fetched successfully',
@@ -856,6 +910,158 @@ const getDhanProfile = async (req, res) => {
   }
 };
 
+// Refresh Dhan access token
+const refreshDhanToken = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const connection = await BrokerConnection.findByUserAndBroker(userId, 'dhan');
+    
+    if (!connection || !connection.isConnected) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dhan not connected'
+      });
+    }
+
+    console.log(`Refreshing Dhan token for user ${userId}`);
+
+    // Call Dhan token refresh API
+    const response = await fetch('https://api.dhan.co/v2/RenewToken', {
+      method: 'POST',
+      headers: {
+        'access-token': connection.dhanAccessToken,
+        'dhanClientId': connection.dhanClientId,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to refresh Dhan token',
+        error: `HTTP ${response.status}: ${response.statusText}`
+      });
+    }
+
+    const refreshData = await response.json();
+    
+    if (!refreshData.accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid response from Dhan token refresh API'
+      });
+    }
+
+    // Update the connection with new token
+    connection.dhanAccessToken = refreshData.accessToken;
+    connection.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    connection.lastUsedAt = new Date();
+    connection.lastError = undefined; // Clear error without calling save()
+    await connection.save();
+
+    console.log(`✅ Dhan token refreshed successfully for user ${userId}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Dhan token refreshed successfully',
+      data: {
+        expiresAt: connection.expiresAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Error refreshing Dhan token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to refresh Dhan token',
+      error: error.message
+    });
+  }
+};
+
+// Refresh all Dhan tokens (for cron job)
+const refreshAllDhanTokens = async () => {
+  try {
+    console.log('🔄 Starting daily Dhan token refresh...');
+    
+    // Find all active Dhan connections
+    const connections = await BrokerConnection.find({
+      broker: 'dhan',
+      isConnected: true,
+      isActive: true
+    });
+
+    console.log(`Found ${connections.length} active Dhan connections to refresh`);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const connection of connections) {
+      try {
+        // Call Dhan token refresh API
+        const response = await fetch('https://api.dhan.co/v2/RenewToken', {
+          method: 'POST',
+          headers: {
+            'access-token': connection.dhanAccessToken,
+            'dhanClientId': connection.dhanClientId,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const refreshData = await response.json();
+          
+          if (refreshData.accessToken) {
+            // Update the connection with new token
+            connection.dhanAccessToken = refreshData.accessToken;
+            connection.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+            connection.lastUsedAt = new Date();
+            connection.lastError = undefined; // Clear error without calling save()
+            await connection.save();
+            
+            successCount++;
+            console.log(`✅ Token refreshed for user ${connection.userId}`);
+          } else {
+            connection.lastError = {
+              message: 'Invalid refresh response',
+              code: 'REFRESH_FAILED',
+              timestamp: new Date()
+            };
+            await connection.save();
+            errorCount++;
+            console.log(`❌ Invalid refresh response for user ${connection.userId}`);
+          }
+        } else {
+          connection.lastError = {
+            message: `HTTP ${response.status}: ${response.statusText}`,
+            code: 'REFRESH_FAILED',
+            timestamp: new Date()
+          };
+          await connection.save();
+          errorCount++;
+          console.log(`❌ Refresh failed for user ${connection.userId}: HTTP ${response.status}`);
+        }
+      } catch (error) {
+        connection.lastError = {
+          message: error.message,
+          code: 'REFRESH_FAILED',
+          timestamp: new Date()
+        };
+        await connection.save();
+        errorCount++;
+        console.log(`❌ Error refreshing token for user ${connection.userId}:`, error.message);
+      }
+    }
+
+    console.log(`✅ Daily Dhan token refresh completed: ${successCount} success, ${errorCount} errors`);
+    return { successCount, errorCount };
+
+  } catch (error) {
+    console.error('❌ Error in daily Dhan token refresh:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAvailableBrokers,
   getConnectedBrokers,
@@ -869,5 +1075,7 @@ module.exports = {
   handleDhanCallback,
   checkDhanConnection,
   disconnectDhan,
-  getDhanProfile
+  getDhanProfile,
+  refreshDhanToken,
+  refreshAllDhanTokens
 };

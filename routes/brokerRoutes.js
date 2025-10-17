@@ -19,10 +19,11 @@ router.get('/angel/profile', brokerController.getAngelOneProfile);
 router.delete('/angel/disconnect', brokerController.disconnectAngelOne);
 
 // Dhan specific routes
-router.get('/dhan/connect', brokerController.connectDhan);
+router.post('/dhan/connect', brokerController.connectDhan);
 router.get('/dhan/callback', brokerController.handleDhanCallback);
 router.get('/dhan/status', brokerController.checkDhanConnection);
 router.get('/dhan/profile', brokerController.getDhanProfile);
+router.post('/dhan/refresh', brokerController.refreshDhanToken);
 router.delete('/dhan/disconnect', brokerController.disconnectDhan);
 
 module.exports = router;

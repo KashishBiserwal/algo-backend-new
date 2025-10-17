@@ -133,12 +133,12 @@ brokerConnectionSchema.statics.findActiveConnections = function(userId) {
 };
 
 // Static method to find connection by user and broker
-brokerConnectionSchema.statics.findByUserAndBroker = function(userId, broker) {
-  return this.findOne({
-    userId,
-    broker,
-    isActive: true
-  });
+brokerConnectionSchema.statics.findByUserAndBroker = function(userId, broker, activeOnly = true) {
+  const query = { userId, broker };
+  if (activeOnly) {
+    query.isActive = true;
+  }
+  return this.findOne(query);
 };
 
 module.exports = mongoose.model('BrokerConnection', brokerConnectionSchema);

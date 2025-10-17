@@ -20,6 +20,7 @@ const adminRoutes = require("./routes/adminRoutes");
 
 // Import services
 const cronService = require("./services/cronService");
+const dhanTokenRefreshService = require("./services/dhanTokenRefreshService");
 
 // Initialize Express app
 const app = express();
@@ -258,4 +259,7 @@ server.listen(port, () => {
   
   // Start cron jobs
   cronService.startAllJobs();
+  
+  // Start Dhan token refresh service
+  dhanTokenRefreshService.start();
 });

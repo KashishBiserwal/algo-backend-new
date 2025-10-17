@@ -10,7 +10,10 @@ const {
   getUserNotifications, 
   getUserSubscriptions,
   changeAdminPassword,
-  updateRiskDisclaimerAcceptance
+  updateRiskDisclaimerAcceptance,
+  forgotPassword,
+  resetPassword,
+  verifyResetCode
 } = require('../controllers/authController');
 const { adminAuth, userAuth } = require('../utils/authMiddleware');
 
@@ -43,6 +46,11 @@ router.get("/subscriptions", userAuth, getUserSubscriptions);
 
 // Risk disclaimer acceptance route
 router.put("/risk-disclaimer", userAuth, updateRiskDisclaimerAcceptance);
+
+// Password reset routes
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+router.post("/verify-reset-code", verifyResetCode);
 
 // Export the router
 module.exports = router;
