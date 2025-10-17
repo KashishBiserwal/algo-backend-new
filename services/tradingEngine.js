@@ -1,7 +1,9 @@
+const mongoose = require('mongoose');
 const DhanClient = require('./dhanClient');
 const BrokerConnection = require('../models/brokerConnectionModel');
 const Strategy = require('../models/strategyModel');
 const Order = require('../models/orderModel');
+const Trade = require('../models/tradeModel');
 
 class TradingEngine {
   constructor({ logger = console } = {}) {
@@ -107,7 +109,20 @@ class TradingEngine {
   // Add strategy to trading engine
   async addStrategy(strategy) {
     try {
-      const userId = strategy.userId.toString();
+      // Validate strategy object
+      if (!strategy) {
+        return { success: false, error: 'Strategy object is null or undefined' };
+      }
+      
+      if (!strategy.created_by) {
+        return { success: false, error: 'Strategy created_by field is missing' };
+      }
+      
+      if (!strategy._id) {
+        return { success: false, error: 'Strategy _id field is missing' };
+      }
+
+      const userId = strategy.created_by.toString();
       
       if (!this.userClients.has(userId)) {
         this.log.warn(`[TradingEngine] No broker client found for user ${userId}`);
@@ -141,6 +156,10 @@ class TradingEngine {
   // Remove strategy from trading engine
   async removeStrategy(strategyId) {
     try {
+      if (!strategyId) {
+        return { success: false, error: 'Strategy ID is required' };
+      }
+      
       const strategy = this.activeStrategies.get(strategyId.toString());
       if (strategy) {
         this.activeStrategies.delete(strategyId.toString());
@@ -332,8 +351,58 @@ class TradingEngine {
 
       await order.save();
       this.log.info(`[TradingEngine] Saved order: ${orderResult.orderId}`);
+      
+      // Also save trade data for comprehensive tracking
+      await this.saveTrade(userId, strategyId, orderResult, orderData);
     } catch (error) {
       this.log.error('[TradingEngine] Failed to save order:', error);
+    }
+  }
+
+  // Save trade to database
+  async saveTrade(userId, strategyId, orderResult, orderData) {
+    try {
+      // Get strategy to determine broker
+      const strategy = await Strategy.findById(strategyId);
+      if (!strategy) {
+        this.log.error(`[TradingEngine] Strategy not found: ${strategyId}`);
+        return;
+      }
+
+      const trade = new Trade({
+        strategyId: strategyId,
+        userId: userId,
+        broker: strategy.broker,
+        tradeId: `${strategy.broker}_${orderResult.orderId}_${Date.now()}`,
+        brokerOrderId: orderResult.orderId,
+        instrument: {
+          instrumentId: orderData.instrumentId || orderData.instrument_id,
+          symbol: orderData.symbol,
+          name: orderData.name || orderData.symbol,
+          exchange: orderData.exchange || 'NSE'
+        },
+        orderType: orderData.orderType || orderData.transaction_type,
+        productType: orderData.productType || orderData.product_type || 'INTRADAY',
+        quantity: orderData.quantity,
+        price: orderData.price,
+        triggerPrice: orderData.triggerPrice || orderData.trigger_price,
+        status: orderResult.orderStatus || 'PENDING',
+        orderTime: new Date(),
+        strategyContext: {
+          entryCondition: orderData.entryCondition,
+          exitCondition: orderData.exitCondition,
+          riskManagement: {
+            stopLoss: orderData.stopLoss,
+            takeProfit: orderData.takeProfit
+          }
+        },
+        brokerResponse: orderResult
+      });
+
+      await trade.save();
+      this.log.info(`[TradingEngine] Saved trade: ${trade.tradeId}`);
+    } catch (error) {
+      this.log.error('[TradingEngine] Failed to save trade:', error);
     }
   }
 
@@ -483,13 +552,195 @@ class TradingEngine {
     }
   }
 
+  // Start individual strategy
+  async startStrategy(strategyId) {
+    try {
+      this.log.info(`[TradingEngine] Starting strategy: ${strategyId}`);
+      
+      // Get strategy from database
+      const strategy = await Strategy.findById(strategyId).populate('created_by');
+      
+      if (!strategy) {
+        return { success: false, error: 'Strategy not found' };
+      }
+      
+      // Check if strategy is already active
+      if (this.activeStrategies.has(strategyId)) {
+        return { success: false, error: 'Strategy is already active' };
+      }
+      
+      // Get user's broker client
+      const userId = strategy.created_by._id ? strategy.created_by._id.toString() : strategy.created_by.toString();
+      const client = this.userClients.get(userId);
+      
+      if (!client) {
+        return { success: false, error: 'No broker client found for user' };
+      }
+      
+      // Add strategy to active strategies
+      this.activeStrategies.set(strategyId, {
+        ...strategy.toObject(),
+        client: client,
+        isActive: true,
+        lastRun: null,
+        nextRun: this.calculateNextRun(strategy)
+      });
+      
+      this.log.info(`[TradingEngine] Strategy ${strategy.name} started successfully`);
+      return { success: true, strategyId: strategyId };
+      
+    } catch (error) {
+      this.log.error(`[TradingEngine] Failed to start strategy ${strategyId}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Stop individual strategy
+  async stopStrategy(strategyId) {
+    try {
+      this.log.info(`[TradingEngine] Stopping strategy: ${strategyId}`);
+      
+      // Check if strategy is active
+      if (!this.activeStrategies.has(strategyId)) {
+        return { success: false, error: 'Strategy is not active' };
+      }
+      
+      // Remove strategy from active strategies
+      this.activeStrategies.delete(strategyId);
+      
+      this.log.info(`[TradingEngine] Strategy ${strategyId} stopped successfully`);
+      return { success: true, strategyId: strategyId };
+      
+    } catch (error) {
+      this.log.error(`[TradingEngine] Failed to stop strategy ${strategyId}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get active strategies for a user
+  getActiveStrategiesForUser(userId) {
+    try {
+      const userStrategies = [];
+      
+      for (const [strategyId, strategy] of this.activeStrategies) {
+        if (strategy.userId === userId.toString()) {
+          userStrategies.push({
+            id: strategyId,
+            name: strategy.name,
+            type: strategy.type,
+            status: strategy.status,
+            lastRun: strategy.lastRun,
+            nextRun: strategy.nextRun,
+            isActive: strategy.isActive
+          });
+        }
+      }
+      
+      return userStrategies;
+    } catch (error) {
+      this.log.error(`[TradingEngine] Failed to get active strategies for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  // Get all active strategies as array
+  getAllActiveStrategies() {
+    try {
+      const strategies = [];
+      
+      for (const [strategyId, strategy] of this.activeStrategies) {
+        strategies.push({
+          id: strategyId,
+          userId: strategy.userId,
+          name: strategy.name,
+          type: strategy.type,
+          status: strategy.status,
+          lastRun: strategy.lastRun,
+          nextRun: strategy.nextRun,
+          isActive: strategy.isActive
+        });
+      }
+      
+      return strategies;
+    } catch (error) {
+      this.log.error('[TradingEngine] Failed to get all active strategies:', error);
+      return [];
+    }
+  }
+
+  // Get trade data for strategy terminal
+  async getStrategyTrades(strategyId, userId) {
+    try {
+      const trades = await Trade.find({
+        strategyId: strategyId,
+        userId: userId
+      }).sort({ orderTime: -1 }).limit(100);
+
+      return {
+        success: true,
+        data: trades
+      };
+    } catch (error) {
+      this.log.error(`[TradingEngine] Failed to get trades for strategy ${strategyId}:`, error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // Get trade statistics for strategy
+  async getStrategyTradeStats(strategyId, userId) {
+    try {
+      const stats = await Trade.aggregate([
+        {
+          $match: {
+            strategyId: mongoose.Types.ObjectId(strategyId),
+            userId: mongoose.Types.ObjectId(userId)
+          }
+        },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalValue: { $sum: '$totalValue' }
+          }
+        }
+      ]);
+
+      const totalTrades = await Trade.countDocuments({
+        strategyId: strategyId,
+        userId: userId
+      });
+
+      return {
+        success: true,
+        data: {
+          totalTrades,
+          statusBreakdown: stats,
+          lastTrade: await Trade.findOne({
+            strategyId: strategyId,
+            userId: userId
+          }).sort({ orderTime: -1 })
+        }
+      };
+    } catch (error) {
+      this.log.error(`[TradingEngine] Failed to get trade stats for strategy ${strategyId}:`, error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
   // Get engine status
   getStatus() {
     return {
       isRunning: this.isRunning,
       activeStrategies: this.activeStrategies.size,
       connectedUsers: this.userClients.size,
-      totalOrderQueues: this.orderQueue.size
+      totalOrderQueues: this.orderQueue.size,
+      strategies: this.getAllActiveStrategies()
     };
   }
 }

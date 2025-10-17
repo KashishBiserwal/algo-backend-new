@@ -138,21 +138,38 @@ const connectAngelOne = async (req, res) => {
 
     const userId = req.user.id;
     
+    // Check if user already has an Angel One connection
+    let existingConnection = await BrokerConnection.findOne({
+      userId: userId,
+      broker: 'angel'
+    });
+    
     // Generate a unique session ID for this user
     const sessionId = crypto.randomBytes(16).toString('hex');
     
     // Store the user ID in session with the session ID as key
     req.session[`angelone_${sessionId}`] = userId;
     
-    // Create a temporary database record as fallback
-    const tempRecord = new BrokerConnection({
-      userId: userId,
-      broker: 'angel',
-      accessToken: sessionId, // Use sessionId as temporary accessToken
-      isConnected: false,
-      isActive: true
-    });
-    await tempRecord.save();
+    if (existingConnection) {
+      // Update existing connection with session info
+      existingConnection.accessToken = sessionId; // Use sessionId as temporary accessToken
+      existingConnection.isConnected = false;
+      existingConnection.isActive = true;
+      existingConnection.lastError = undefined;
+      await existingConnection.save();
+      console.log(`✅ Updated existing Angel One connection for user ${userId}`);
+    } else {
+      // Create a new temporary database record
+      const tempRecord = new BrokerConnection({
+        userId: userId,
+        broker: 'angel',
+        accessToken: sessionId, // Use sessionId as temporary accessToken
+        isConnected: false,
+        isActive: true
+      });
+      await tempRecord.save();
+      console.log(`✅ Created new Angel One connection for user ${userId}`);
+    }
 
     // Generate Angel One login URL
     const state = sessionId;
@@ -170,6 +187,45 @@ const connectAngelOne = async (req, res) => {
     });
   } catch (error) {
     console.error('Error connecting to Angel One:', error);
+    
+    // Handle duplicate key error specifically
+    if (error.code === 11000) {
+      console.log('Duplicate key error detected for Angel One, attempting to update existing connection...');
+      try {
+        // Try to find and update the existing connection
+        const existingConnection = await BrokerConnection.findOne({
+          userId: req.user.id,
+          broker: 'angel'
+        });
+        
+        if (existingConnection) {
+          const sessionId = crypto.randomBytes(16).toString('hex');
+          req.session[`angelone_${sessionId}`] = req.user.id;
+          
+          existingConnection.accessToken = sessionId;
+          existingConnection.isConnected = false;
+          existingConnection.isActive = true;
+          existingConnection.lastError = undefined;
+          await existingConnection.save();
+          
+          const loginUrl = `https://smartapi.angelbroking.com/publisher-login?api_key=${ANGEL_API_KEY}&response_type=code&state=${sessionId}&redirect_uri=${encodeURIComponent(ANGEL_REDIRECT_URI)}`;
+          
+          console.log(`✅ Updated existing Angel One connection for user ${req.user.id}`);
+          
+          return res.status(200).json({
+            success: true,
+            message: 'Angel One login URL generated successfully',
+            data: {
+              loginUrl,
+              state: sessionId
+            }
+          });
+        }
+      } catch (updateError) {
+        console.error('Error updating existing Angel One connection:', updateError);
+      }
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to connect to Angel One',
@@ -251,7 +307,7 @@ const handleAngelOneCallback = async (req, res) => {
       existingConnection.isActive = true;
       existingConnection.connectedAt = new Date();
       existingConnection.lastUsedAt = new Date();
-      existingConnection.clearError();
+      existingConnection.lastError = undefined; // Clear error without calling save()
       
       await existingConnection.save();
       console.log(`✅ Updated Angel One credentials for user ${userId}`);
